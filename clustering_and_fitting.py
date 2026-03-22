@@ -83,8 +83,21 @@ def writing(moments, col):
           f'Excess Kurtosis = {moments[3]:.2f}.')
     # Delete the following options as appropriate for your data.
     # Not skewed and mesokurtic can be defined with asymmetries <-2 or >2.
-    skew_type = "right skewed" if moments[2] > 0 else "left skewed"
-    kurt_type = "leptokurtic" if moments[3] > 0 else "platykurtic"
+
+    if moments[2] > 0.5:
+        skew_type = "right skewed"
+    elif moments[2] < -0.5:
+        skew_type = "left skewed"
+    else:
+        skew_type = "not skewed"
+
+    if moments[3] > 0.5:
+        kurt_type = "leptokurtic"
+    elif moments[3] < -0.5:
+        kurt_type = "platykurtic"
+    else:
+        kurt_type = "mesokurtic"
+
     print(f'The data was {skew_type} and {kurt_type}.')
 
     return
