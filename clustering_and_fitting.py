@@ -59,7 +59,7 @@ def plot_statistical_plot(df):
 
 
 def statistical_analysis(df, col: str):
-    """Calculate and return the mean, standard deviation, skewness, and excess kurtosis of a column."""
+    """Calculate and return the statistics of a column."""
     mean = df[col].mean()
     stddev = df[col].std()
     skew = ss.skew(df[col].dropna())
@@ -116,7 +116,7 @@ def writing(moments, col):
 
 
 def perform_clustering(df, col1, col2):
-    """Perform K-Means clustering on two columns and return the cluster labels, data, and cluster centers."""
+    """Perform K-Means clustering on two columns and return the results."""
     data = df[[col1, col2]].values
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data)
@@ -125,8 +125,6 @@ def perform_clustering(df, col1, col2):
         fig, ax = plt.subplots(figsize=(8, 6))
         inertia = []
         for i in range(1, 11):
-           # kmeans = KMeans(n_clusters=i, random_state=42, n_init=10)
-            # kmeans.fit(scaled_data)
             km = KMeans(n_clusters=i, random_state=42, n_init=10)
             km.fit(scaled_data)
             inertia.append(km.inertia_)
@@ -138,7 +136,7 @@ def perform_clustering(df, col1, col2):
         return
 
     def one_silhouette_inertia():
-        """Calculate silhouette score and inertia for a fixed number of clusters."""
+        """Calculate silhouette score and inertia for clusters."""
         km = KMeans(n_clusters=3, random_state=42, n_init=10)
         labels = km.fit_predict(scaled_data)
         _score = silhouette_score(scaled_data, labels)
@@ -173,7 +171,7 @@ def plot_clustered_data(labels, data, xkmeans, ykmeans, centre_labels):
 
 
 def perform_fitting(df, col1, col2):
-    """Perform linear fitting between two columns and return the data, fitted x, and fitted y."""
+    """Perform linear fitting between two columns and return data, x, y"""
     # Gather data and prepare for fitting
     x_data = df[col1].values
     y_data = df[col2].values
