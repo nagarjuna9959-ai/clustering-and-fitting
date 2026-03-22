@@ -99,7 +99,6 @@ def writing(moments, col):
         kurt_type = "mesokurtic"
 
     print(f'The data was {skew_type} and {kurt_type}.')
-
     return
 
 
@@ -142,14 +141,12 @@ def perform_clustering(df, col1, col2):
    
     cenlabels = scaler.inverse_transform(km.cluster_centers_)
     xkmeans, ykmeans = cenlabels[:, 0], cenlabels[:, 1]
-
     # Get cluster centers
     return labels, data, xkmeans, ykmeans, cenlabels
 
 
 def plot_clustered_data(labels, data, xkmeans, ykmeans, centre_labels):
     fig, ax = plt.subplots(figsize=(8, 6))
-
     ax.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis', alpha=0.5)
     ax.scatter(xkmeans, ykmeans, c='red', marker='X', s=200, label='Centroids')
     ax.set_title('K-Means Clustering: Movie Ratings')
@@ -164,9 +161,7 @@ def perform_fitting(df, col1, col2):
     # Gather data and prepare for fitting
     x_data = df[col1].values
     y_data = df[col2].values
-
     data= (x_data, y_data)
-
     # Fit model
     params = np.polyfit(x_data, y_data, 1)
     x = np.linspace(x_data.min(), x_data.max(), 100)
@@ -206,4 +201,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
