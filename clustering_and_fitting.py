@@ -20,30 +20,30 @@ from sklearn.metrics import silhouette_score
 
 
 def plot_relational_plot(df):
-    #fig, ax = plt.subplots()
-    sns.scatterplot(data=df, x='budget', y='worlwide_gross_income', alpha=0.5)
-    plt.title('Movie Budget vs. Worldwide Gross Income')
-    plt.xlabel('Budget ($)')
-    plt.ylabel('Worldwide Gross ($)')
+    fig, ax = plt.subplots()
+    sns.scatterplot(data=df, x='budget', y='worlwide_gross_income', alpha=0.5, ax=ax)
+    ax.set_title('Movie Budget vs. Worldwide Gross Income')
+    ax.set_xlabel('Budget ($)')
+    ax.set_ylabel('Worldwide Gross ($)')
     plt.savefig('relational_plot.png')
     return
 
 
 def plot_categorical_plot(df):
-    #fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
     df['primary_genre'] = df['genre'].str.split(',').str[0]
-    df['primary_genre'].value_counts().head(10).plot(kind='barh', color='teal')
-    plt.title('Top 10 Movie Genres by Frequency')
-    plt.xlabel('Count')
+    df['primary_genre'].value_counts().head(10).plot(kind='barh', color='teal', ax=ax)
+    ax.set_title('Top 10 Movie Genres by Frequency')
+    ax.set_xlabel('Count')
     plt.savefig('categorical_plot.png')
     return
 
 
 def plot_statistical_plot(df):
-    #fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
     corr = df[['duration', 'avg_vote', 'votes', 'metascore', 'budget']].corr()
-    sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f")
-    plt.title('Correlation Heatmap of Movie Attributes')
+    sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
+    ax.set_title('Correlation Heatmap of Movie Attributes')
     plt.savefig('statistical_plot.png')
     return
 
@@ -70,6 +70,8 @@ def preprocessing(df):
     df = df.dropna(subset=cols_to_fix)
     
     print(df.describe())
+    print(df.head())
+    print(df.select_dtypes(include=[np.number]).corr())
     return df
 
 
@@ -94,14 +96,18 @@ def perform_clustering(df, col1, col2):
     scaled_data = scaler.fit_transform(data)
 
     def plot_elbow_method():
-        #fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(8, 6))
         inertia = []
         for i in range(1, 11):
-            kmeans = KMeans(n_clusters=i, random_state=42, n_init=10)
-            kmeans.fit(scaled_data)
-            inertia.append(kmeans.inertia_)
-        plt.plot(range(1, 11), inertia, marker='o')
-        plt.title('Elbow Method')
+           # kmeans = KMeans(n_clusters=i, random_state=42, n_init=10)
+            #kmeans.fit(scaled_data)
+            km= KMeans(n_clusters=i, random_state=42, n_init=10)
+            km.fit(scaled_data)
+            inertia.append(km.inertia_)
+        ax.plot(range(1, 11), inertia, marker='o')
+        ax.set_title('Elbow Method')
+        ax.set_xlabel('Number of Clusters')
+        ax.set_ylabel('Inertia')
         plt.savefig('elbow_plot.png')
         return
 
@@ -110,15 +116,18 @@ def perform_clustering(df, col1, col2):
         labels = km.fit_predict(scaled_data)
         _score = silhouette_score(scaled_data, labels)
         _inertia = km.inertia_
-        return _score, _inertia,labels, km
+        return _score, _inertia
+    
 
     # Gather data and scale
 
     # Find best number of clusters
     one_silhouette_inertia()
     plot_elbow_method()
-    score, inertia, labels, kmeans_obj = one_silhouette_inertia()
-    cenlabels = scaler.inverse_transform(kmeans_obj.cluster_centers_)
+    km= KMeans(n_clusters=3, random_state=42, n_init=10)
+    labels = km.fit_predict(scaled_data)
+   
+    cenlabels = scaler.inverse_transform(km.cluster_centers_)
     xkmeans, ykmeans = cenlabels[:, 0], cenlabels[:, 1]
 
     # Get cluster centers
@@ -126,14 +135,14 @@ def perform_clustering(df, col1, col2):
 
 
 def plot_clustered_data(labels, data, xkmeans, ykmeans, centre_labels):
-    #fig, ax = plt.subplots()
-    plt.figure(figsize=(8, 6))
-    plt.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis', alpha=0.5)
-    plt.scatter(xkmeans, ykmeans, c='red', marker='X', s=200, label='Centroids')
-    plt.title('K-Means Clustering: Movie Ratings')
-    plt.xlabel('Avg Vote')
-    plt.ylabel('Metascore')
-    plt.legend()
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    ax.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis', alpha=0.5)
+    ax.scatter(xkmeans, ykmeans, c='red', marker='X', s=200, label='Centroids')
+    ax.set_title('K-Means Clustering: Movie Ratings')
+    ax.set_xlabel('Avg Vote')
+    ax.set_ylabel('Metascore')
+    ax.legend()
     plt.savefig('clustering.png')
     return
 
@@ -143,24 +152,25 @@ def perform_fitting(df, col1, col2):
     x_data = df[col1].values
     y_data = df[col2].values
 
+    data= (x_data, y_data)
+
     # Fit model
     params = np.polyfit(x_data, y_data, 1)
-    line_x = np.linspace(x_data.min(), x_data.max(), 100)
-    line_y = np.polyval(params, line_x)
+    x = np.linspace(x_data.min(), x_data.max(), 100)
+    y = np.polyval(params, x)
 
     # Predict across x
-    return (x_data, y_data), line_x, line_y
+    return data, x, y
 
 
 def plot_fitted_data(data, x, y):
-    #fig, ax = plt.subplots()
-    plt.figure(figsize=(8, 6))
-    plt.scatter(data[0], data[1], alpha=0.3, label='Data')
-    plt.plot(x, y, color='red', linewidth=3, label='Fit')
-    plt.title('Linear Fit: Duration vs. Average Vote')
-    plt.xlabel('Duration (min)')
-    plt.ylabel('Avg Vote')
-    plt.legend()
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(data[0], data[1], alpha=0.3, label='Data')
+    ax.plot(x, y, color='red', linewidth=3, label='Fit')
+    ax.set_title('Linear Fit: Duration vs. Average Vote')
+    ax.set_xlabel('Duration (min)')
+    ax.set_ylabel('Avg Vote')
+    ax.legend()
     plt.savefig('fitting.png')
     return
 
