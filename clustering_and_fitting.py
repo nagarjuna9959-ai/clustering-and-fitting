@@ -189,7 +189,7 @@ def plot_fitted_data(data, x, y):
 
 
 def main():
-    df = pd.read_csv('data.csv',low_memory=False)
+    df = pd.read_csv('data.csv')
     df = preprocessing(df)
     col = 'avg_vote'
     plot_relational_plot(df)
