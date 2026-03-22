@@ -39,7 +39,7 @@ def plot_categorical_plot(df):
     """Plot a categorical plot of the top 10 movie genres by frequency."""
     fig, ax = plt.subplots()
     temp = df.copy()
-    temp['primary_genre'] = df['genre'].str.split(',').str[0]
+    temp['primary_genre'] = temp['genre'].str.split(',').str[0]
     temp['primary_genre'].value_counts().head(
         10).plot(kind='barh', color='teal', ax=ax)
     ax.set_title('Top 10 Movie Genres by Frequency')
@@ -173,13 +173,28 @@ def plot_clustered_data(labels, data, xkmeans, ykmeans, centre_labels):
 def perform_fitting(df, col1, col2):
     """Perform linear fitting between two columns and return data, x, y"""
     # Gather data and prepare for fitting
-    x_data = df[col1].values
-    y_data = df[col2].values
-    data = (x_data, y_data)
-    # Fit model
-    params = np.polyfit(x_data, y_data, 1)
-    x = np.linspace(x_data.min(), x_data.max(), 100)
-    y = np.polyval(params, x)
+    x_data = df[[col1]].values
+    y_data = df[[col2]].values
+
+    # Scale both X and Y
+    scaler_x = StandardScaler()
+    scaler_y = StandardScaler()
+
+    x_scaled = scaler_x.fit_transform(x_data)
+    y_scaled = scaler_y.fit_transform(y_data)
+
+    # Fit model on scaled data
+    params = np.polyfit(x_scaled.flatten(), y_scaled.flatten(), 1)
+
+    # Generate smooth line in scaled space
+    x_scaled_line = np.linspace(x_scaled.min(), x_scaled.max(), 100)
+    y_scaled_line = np.polyval(params, x_scaled_line)
+
+    # Inverse transform back to original scale
+    x = scaler_x.inverse_transform(x_scaled_line.reshape(-1, 1)).flatten()
+    y = scaler_y.inverse_transform(y_scaled_line.reshape(-1, 1)).flatten()
+
+    data = (x_data.flatten(), y_data.flatten())
 
     # Predict across x
     return data, x, y
