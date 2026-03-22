@@ -20,8 +20,14 @@ from sklearn.metrics import silhouette_score
 
 
 def plot_relational_plot(df):
+    """Plot a relational plot of budget vs. worldwide gross income."""
     fig, ax = plt.subplots()
-    sns.scatterplot(data=df, x='budget', y='worlwide_gross_income', alpha=0.5, ax=ax)
+    sns.scatterplot(
+        data=df,
+        x='budget',
+        y='worlwide_gross_income',
+        alpha=0.5,
+        ax=ax)
     ax.set_title('Movie Budget vs. Worldwide Gross Income')
     ax.set_xlabel('Budget ($)')
     ax.set_ylabel('Worldwide Gross ($)')
@@ -30,9 +36,12 @@ def plot_relational_plot(df):
 
 
 def plot_categorical_plot(df):
+    """Plot a categorical plot of the top 10 movie genres by frequency."""
     fig, ax = plt.subplots()
-    df['primary_genre'] = df['genre'].str.split(',').str[0]
-    df['primary_genre'].value_counts().head(10).plot(kind='barh', color='teal', ax=ax)
+    temp = df.copy()
+    temp['primary_genre'] = df['genre'].str.split(',').str[0]
+    temp['primary_genre'].value_counts().head(
+        10).plot(kind='barh', color='teal', ax=ax)
     ax.set_title('Top 10 Movie Genres by Frequency')
     ax.set_xlabel('Count')
     plt.savefig('categorical_plot.png')
@@ -40,6 +49,7 @@ def plot_categorical_plot(df):
 
 
 def plot_statistical_plot(df):
+    """Plot a heatmap of the correlation between key numerical attributes."""
     fig, ax = plt.subplots()
     corr = df[['duration', 'avg_vote', 'votes', 'metascore', 'budget']].corr()
     sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
@@ -49,14 +59,16 @@ def plot_statistical_plot(df):
 
 
 def statistical_analysis(df, col: str):
+    """Calculate and return the mean, standard deviation, skewness, and excess kurtosis of a column."""
     mean = df[col].mean()
-    stddev = df[col].std()  
+    stddev = df[col].std()
     skew = ss.skew(df[col].dropna())
     excess_kurtosis = ss.kurtosis(df[col].dropna())
     return mean, stddev, skew, excess_kurtosis
 
 
 def preprocessing(df):
+    """Preprocess the data by cleaning and transforming it as necessary."""
     # You should preprocess your data in this function and
     # make use of quick features such as 'describe', 'head/tail' and 'corr'.
     # Convert currency strings to floats
@@ -68,7 +80,7 @@ def preprocessing(df):
     # Drop rows with NaNs in key columns for analysis
     cols_to_fix = ['avg_vote', 'metascore', 'duration', 'budget']
     df = df.dropna(subset=cols_to_fix)
-    
+
     print(df.describe())
     print(df.head())
     print(df.select_dtypes(include=[np.number]).corr())
@@ -76,6 +88,7 @@ def preprocessing(df):
 
 
 def writing(moments, col):
+    """Write a summary of the statistical analysis results."""
     print(f'For the attribute {col}:')
     print(f'Mean = {moments[0]:.2f}, '
           f'Standard Deviation = {moments[1]:.2f}, '
@@ -103,6 +116,7 @@ def writing(moments, col):
 
 
 def perform_clustering(df, col1, col2):
+    """Perform K-Means clustering on two columns and return the cluster labels, data, and cluster centers."""
     data = df[[col1, col2]].values
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data)
@@ -112,8 +126,8 @@ def perform_clustering(df, col1, col2):
         inertia = []
         for i in range(1, 11):
            # kmeans = KMeans(n_clusters=i, random_state=42, n_init=10)
-            #kmeans.fit(scaled_data)
-            km= KMeans(n_clusters=i, random_state=42, n_init=10)
+            # kmeans.fit(scaled_data)
+            km = KMeans(n_clusters=i, random_state=42, n_init=10)
             km.fit(scaled_data)
             inertia.append(km.inertia_)
         ax.plot(range(1, 11), inertia, marker='o')
@@ -124,21 +138,21 @@ def perform_clustering(df, col1, col2):
         return
 
     def one_silhouette_inertia():
+        """Calculate silhouette score and inertia for a fixed number of clusters."""
         km = KMeans(n_clusters=3, random_state=42, n_init=10)
         labels = km.fit_predict(scaled_data)
         _score = silhouette_score(scaled_data, labels)
         _inertia = km.inertia_
         return _score, _inertia
-    
 
     # Gather data and scale
 
     # Find best number of clusters
     one_silhouette_inertia()
     plot_elbow_method()
-    km= KMeans(n_clusters=3, random_state=42, n_init=10)
+    km = KMeans(n_clusters=3, random_state=42, n_init=10)
     labels = km.fit_predict(scaled_data)
-   
+
     cenlabels = scaler.inverse_transform(km.cluster_centers_)
     xkmeans, ykmeans = cenlabels[:, 0], cenlabels[:, 1]
     # Get cluster centers
@@ -146,6 +160,7 @@ def perform_clustering(df, col1, col2):
 
 
 def plot_clustered_data(labels, data, xkmeans, ykmeans, centre_labels):
+    """Plot the clustered data with centroids."""
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis', alpha=0.5)
     ax.scatter(xkmeans, ykmeans, c='red', marker='X', s=200, label='Centroids')
@@ -158,10 +173,11 @@ def plot_clustered_data(labels, data, xkmeans, ykmeans, centre_labels):
 
 
 def perform_fitting(df, col1, col2):
+    """Perform linear fitting between two columns and return the data, fitted x, and fitted y."""
     # Gather data and prepare for fitting
     x_data = df[col1].values
     y_data = df[col2].values
-    data= (x_data, y_data)
+    data = (x_data, y_data)
     # Fit model
     params = np.polyfit(x_data, y_data, 1)
     x = np.linspace(x_data.min(), x_data.max(), 100)
@@ -172,6 +188,7 @@ def perform_fitting(df, col1, col2):
 
 
 def plot_fitted_data(data, x, y):
+    """Plot the original data and the fitted line."""
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.scatter(data[0], data[1], alpha=0.3, label='Data')
     ax.plot(x, y, color='red', linewidth=3, label='Fit')
@@ -184,6 +201,7 @@ def plot_fitted_data(data, x, y):
 
 
 def main():
+    """Main function to execute the data analysis, clustering, and fitting."""
     df = pd.read_csv('data.csv')
     df = preprocessing(df)
     col = 'avg_vote'
